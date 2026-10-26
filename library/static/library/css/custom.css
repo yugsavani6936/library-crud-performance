@@ -1,0 +1,157 @@
+/*
+  Custom Styles for College Engineering Project
+  Theme: Dark Green & Charcoal Professional Academic Palette
+*/
+
+:root {
+  --primary-forest: #1b4332;
+  --primary-green: #2d6a4f;
+  --accent-green: #40916c;
+  --light-sage: #d8f3dc;
+  --bg-offwhite: #f8f9fa;
+  --text-charcoal: #212529;
+  --card-bg: #ffffff;
+  --border-subtle: #e2e8f0;
+}
+
+body {
+  background-color: var(--bg-offwhite);
+  color: var(--text-charcoal);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar Custom Styling */
+.navbar-custom {
+  background-color: var(--primary-forest);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-custom .navbar-brand {
+  font-weight: 700;
+  color: #ffffff !important;
+  letter-spacing: 0.5px;
+}
+
+.navbar-custom .nav-link {
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+  color: #ffffff !important;
+  background-color: var(--primary-green);
+}
+
+/* Page Header */
+.page-header {
+  border-bottom: 2px solid var(--light-sage);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  font-weight: 700;
+  color: var(--primary-forest);
+}
+
+/* Cards & Surfaces */
+.card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: var(--card-bg);
+}
+
+.card-header-forest {
+  background-color: var(--primary-green);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 7px 7px 0 0 !important;
+}
+
+/* Buttons */
+.btn-forest {
+  background-color: var(--primary-green);
+  color: #ffffff;
+  border: 1px solid var(--primary-green);
+  font-weight: 500;
+}
+
+.btn-forest:hover {
+  background-color: var(--primary-forest);
+  color: #ffffff;
+  border-color: var(--primary-forest);
+}
+
+.btn-outline-forest {
+  color: var(--primary-green);
+  border-color: var(--primary-green);
+  font-weight: 500;
+}
+
+.btn-outline-forest:hover {
+  background-color: var(--primary-green);
+  color: #ffffff;
+}
+
+/* Badges */
+.badge-forest {
+  background-color: var(--light-sage);
+  color: var(--primary-forest);
+  font-weight: 600;
+}
+
+/* Data Tables */
+.table-custom {
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-custom th {
+  background-color: #f1f5f3;
+  color: var(--primary-forest);
+  font-weight: 600;
+  border-top: none;
+}
+
+.table-custom tbody tr:hover {
+  background-color: #f8faf8;
+}
+
+/* Stat KPI Cards */
+.kpi-card {
+  border-left: 4px solid var(--primary-green);
+  border-radius: 6px;
+  padding: 1.25rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-forest);
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #6c757d;
+  letter-spacing: 0.5px;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  color: #6c757d;
+}

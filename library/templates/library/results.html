@@ -1,0 +1,282 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Experimental Performance Evaluation Results Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col-md-7">
+    <h2 class="fw-bold mb-1" style="color: var(--primary-forest);">Experimental Results Dashboard</h2>
+    <p class="text-muted mb-0">Empirical comparative analysis of CRUD latency across dataset volumes in PostgreSQL 18.</p>
+  </div>
+  <div class="col-md-5 text-md-end mt-3 mt-md-0">
+    <a href="{% url 'export_csv' %}" class="btn btn-outline-forest me-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-1 mb-1" viewBox="0 0 16 16">
+        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+      </svg>
+      Export CSV Dataset
+    </a>
+    <a href="{% url 'benchmark_view' %}" class="btn btn-forest">
+      + Run New Benchmark
+    </a>
+  </div>
+</div>
+
+{% if total_trials == 0 %}
+  <!-- Empty State -->
+  <div class="card shadow-sm border-0 py-5 text-center my-4">
+    <div class="card-body">
+      <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="currentColor" class="bi bi-bar-chart-line text-muted mb-3" viewBox="0 0 16 16">
+        <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+      </svg>
+      <h4 class="fw-bold text-dark">No Benchmark Experiments Recorded Yet</h4>
+      <p class="text-muted col-md-6 mx-auto mb-4">
+        Run your first empirical benchmark to measure CREATE, READ, UPDATE, and DELETE operations. All measured times will be stored in PostgreSQL and charted here.
+      </p>
+      <a href="{% url 'benchmark_view' %}" class="btn btn-forest px-4 py-2">Go to Performance Tests</a>
+    </div>
+  </div>
+{% else %}
+
+  <!-- KPI Stats Summary Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Recorded Trials</div>
+        <div class="kpi-value">{{ total_trials }}</div>
+        <small class="text-muted">Total test runs in PostgreSQL</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="kpi-card" style="border-left-color: #1d3557;">
+        <div class="kpi-label">Evaluated Scales</div>
+        <div class="kpi-value text-primary" style="font-size: 1.5rem;">
+          {% for s in chart_sizes %}{{ s }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </div>
+        <small class="text-muted">Record count tiers</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="kpi-card" style="border-left-color: #2d6a4f;">
+        <div class="kpi-label">Measured Metric</div>
+        <div class="kpi-value text-success" style="font-size: 1.4rem;">time.perf_counter_ns</div>
+        <small class="text-muted">High-precision CPU timer</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="kpi-card" style="border-left-color: #d97706;">
+        <div class="kpi-label">Database Target</div>
+        <div class="kpi-value text-warning" style="font-size: 1.5rem;">PostgreSQL 18</div>
+        <small class="text-muted">Direct relational transactions</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Matrix Table -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">
+        Average Execution Time Matrix across Dataset Sizes (in milliseconds)
+      </h5>
+      <span class="badge badge-forest">Real Measured Averages</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-custom mb-0 text-center align-middle">
+        <thead>
+          <tr>
+            <th class="text-start" style="width: 25%;">CRUD Operation</th>
+            {% for size in chart_sizes %}
+              <th>{{ size }} Records</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in table_rows %}
+          <tr>
+            <td class="text-start fw-bold">
+              {% if row.operation == 'CREATE' %}
+                <span class="text-success">&bull; CREATE</span> (Batch Insert)
+              {% elif row.operation == 'READ' %}
+                <span class="text-primary">&bull; READ</span> (Full Query Fetch)
+              {% elif row.operation == 'UPDATE' %}
+                <span class="text-warning">&bull; UPDATE</span> (Bulk Modify)
+              {% elif row.operation == 'DELETE' %}
+                <span class="text-danger">&bull; DELETE</span> (Batch Delete)
+              {% endif %}
+            </td>
+            {% for cell in row.cells %}
+              <td>
+                {% if cell.avg_ms is not None %}
+                  <span class="badge bg-light text-dark border px-2 py-1 fs-6">
+                    <strong>{{ cell.avg_ms }}</strong> ms
+                  </span>
+                {% else %}
+                  <span class="text-muted fst-italic">Not tested</span>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Visual Charts Section (Chart.js Offline) -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">Comparative Bar Chart (Execution Time)</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="barChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">Scaling Trend Line Chart (Growth Rate)</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="lineChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Individual Trials Table -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">Recent Measured Trials (PostgreSQL <code>library_benchmarkresult</code>)</h5>
+      
+      <form action="{% url 'clear_benchmarks' %}" method="post" onsubmit="return confirm('Are you sure you want to clear all recorded benchmark trials from PostgreSQL?');" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger">Clear All History</button>
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover table-custom mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Operation</th>
+            <th>Dataset Size</th>
+            <th>Trial #</th>
+            <th>Duration (ms)</th>
+            <th>Duration (s)</th>
+            <th>Throughput</th>
+            <th>Notes</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in trial_records %}
+          <tr>
+            <td class="text-muted fw-semibold">#{{ r.id }}</td>
+            <td>
+              {% if r.operation == 'CREATE' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">CREATE</span>
+              {% elif r.operation == 'READ' %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">READ</span>
+              {% elif r.operation == 'UPDATE' %}
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">UPDATE</span>
+              {% elif r.operation == 'DELETE' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">DELETE</span>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ r.dataset_size }}</td>
+            <td>Trial {{ r.trial_number }}</td>
+            <td><strong>{{ r.execution_time_ms }} ms</strong></td>
+            <td class="text-muted">{{ r.execution_time_s }} s</td>
+            <td>{{ r.throughput_ops_per_sec }} ops/s</td>
+            <td class="small text-muted">{{ r.notes }}</td>
+            <td class="small text-secondary">{{ r.created_at|date:"d M Y, H:i:s" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Offline Local Chart.js -->
+<script src="{% static 'library/js/chart.umd.min.js' %}"></script>
+<script>
+  {% if total_trials > 0 %}
+  const labels = {{ chart_sizes|safe }}.map(s => s + ' Records');
+  const datasets = {{ chart_datasets|safe }};
+
+  // Bar Chart Configuration
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + context.parsed.y + ' ms';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Execution Time (ms)' }
+        },
+        x: {
+          title: { display: true, text: 'Dataset Volume' }
+        }
+      }
+    }
+  });
+
+  // Line Chart Configuration
+  const lineCtx = document.getElementById('lineChart').getContext('2d');
+  new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + context.parsed.y + ' ms';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Execution Time (ms)' }
+        },
+        x: {
+          title: { display: true, text: 'Dataset Volume' }
+        }
+      }
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}

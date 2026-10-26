@@ -1,0 +1,62 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Sign In - Library Performance Evaluator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+  <div class="col-md-6 col-lg-5 col-xl-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header card-header-forest py-3 text-center">
+        <h4 class="mb-0 fw-bold">System Authentication</h4>
+        <small class="text-white-50">Authorized Access for Faculty & Students</small>
+      </div>
+      <div class="card-body p-4">
+        
+        <!-- College Demo Credentials Card -->
+        <div class="alert alert-success border-0 shadow-sm py-2 px-3 mb-4">
+          <div class="d-flex align-items-center mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-check me-2" viewBox="0 0 16 16">
+              <path d="M5.5 8.5A.5.5 0 0 1 6 8h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
+              <path d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.775 11.775 0 0 0 2.517 2.453 7.159 7.159 0 0 0 1.048.625c.28.132.581.24.829.24s.548-.108.829-.24a7.158 7.158 0 0 0 1.048-.625 11.777 11.777 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.541 1.541 0 0 0-1.044-1.263 62.467 62.467 0 0 0-2.887-.87C9.843.266 8.69 0 8 0zm2.146 5.146a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647z"/>
+            </svg>
+            <strong class="small">Demo Administrator Credentials:</strong>
+          </div>
+          <div class="small">
+            Username: <code>admin</code> &bull; Password: <code>admin123</code>
+          </div>
+        </div>
+
+        {% if form.errors %}
+          <div class="alert alert-danger py-2 small">
+            Invalid username or password. Please verify and retry.
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="id_username" class="form-label fw-semibold">Username</label>
+            <input type="text" name="username" autofocus required class="form-control" id="id_username" placeholder="Enter username (e.g. admin)">
+          </div>
+
+          <div class="mb-4">
+            <label for="id_password" class="form-label fw-semibold">Password</label>
+            <input type="password" name="password" required class="form-control" id="id_password" placeholder="Enter password">
+          </div>
+
+          <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-forest py-2 fw-semibold">
+              Sign In to System
+            </button>
+          </div>
+        </form>
+
+      </div>
+      <div class="card-footer bg-light text-center py-2 border-top">
+        <a href="{% url 'book_list' %}" class="small text-muted text-decoration-none">&larr; Return to Catalog</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

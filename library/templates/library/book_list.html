@@ -1,0 +1,189 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Library Catalog Management - CRUD Project{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col-md-6">
+    <h2 class="fw-bold mb-1" style="color: var(--primary-forest);">Library Catalog Records</h2>
+    <p class="text-muted mb-0">Production inventory managed in PostgreSQL (isolated from benchmarking test rows).</p>
+  </div>
+  <div class="col-md-6 text-md-end mt-3 mt-md-0">
+    <a href="{% url 'book_create' %}" class="btn btn-forest px-3 py-2 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-plus-circle me-1 mb-1" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+      </svg>
+      Add New Book
+    </a>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Catalog Books</div>
+      <div class="kpi-value">{{ total_books }}</div>
+      <small class="text-muted">Permanent records in PostgreSQL</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="kpi-card" style="border-left-color: #1d3557;">
+      <div class="kpi-label">Active Database</div>
+      <div class="kpi-value text-primary" style="font-size: 1.5rem;">PostgreSQL 18</div>
+      <small class="text-muted">Local database instance (port 5432)</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="kpi-card" style="border-left-color: #d97706;">
+      <div class="kpi-label">Data Isolation</div>
+      <div class="kpi-value text-warning" style="font-size: 1.5rem;">Strict</div>
+      <small class="text-muted">Benchmark data flagged & separated</small>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="kpi-card" style="border-left-color: #40916c;">
+      <div class="kpi-label">ORM Framework</div>
+      <div class="kpi-value" style="font-size: 1.5rem; color: #2d6a4f;">Django 6.1</div>
+      <small class="text-muted">Psycopg 3 native driver</small>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div class="card mb-4 shadow-sm border-0">
+  <div class="card-body bg-white rounded">
+    <form method="get" action="{% url 'book_list' %}" class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input type="text" name="q" class="form-control" placeholder="Search by title, author name, or ISBN..." value="{{ search_query }}">
+          <button class="btn btn-forest" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-1" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+            Search
+          </button>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="category" class="form-select" onchange="this.form.submit()">
+          <option value="">-- All Subject Categories --</option>
+          {% for code, label in categories %}
+            <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 text-md-end">
+        {% if search_query or category_filter %}
+          <a href="{% url 'book_list' %}" class="btn btn-outline-secondary w-100">Clear Filters</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Book Catalog Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">Books in Catalog</h5>
+    <small class="text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries</small>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-custom mb-0 align-middle">
+      <thead>
+        <tr>
+          <th style="width: 5%;">#</th>
+          <th style="width: 25%;">Title</th>
+          <th style="width: 20%;">Author</th>
+          <th style="width: 14%;">ISBN</th>
+          <th style="width: 14%;">Category</th>
+          <th style="width: 8%;" class="text-center">Year</th>
+          <th style="width: 6%;" class="text-center">Copies</th>
+          <th style="width: 8%;" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in page_obj %}
+        <tr>
+          <td class="text-muted fw-semibold">{{ book.id }}</td>
+          <td>
+            <strong class="text-dark">{{ book.title }}</strong>
+          </td>
+          <td>
+            <span class="text-secondary">{{ book.author }}</span>
+          </td>
+          <td>
+            <code class="text-dark bg-light px-2 py-1 rounded border">{{ book.isbn }}</code>
+          </td>
+          <td>
+            <span class="badge badge-forest">{{ book.category }}</span>
+          </td>
+          <td class="text-center">{{ book.publication_year }}</td>
+          <td class="text-center">
+            {% if book.available_copies > 0 %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">{{ book.available_copies }}</span>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Out of Stock</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="btn-group btn-group-sm" role="group">
+              <a href="{% url 'book_update' book.pk %}" class="btn btn-outline-forest" title="Edit book details">
+                Edit
+              </a>
+              <a href="{% url 'book_delete' book.pk %}" class="btn btn-outline-danger" title="Delete book record">
+                Delete
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-inbox mb-2 text-secondary" viewBox="0 0 16 16">
+              <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.934 9zM3.804 3.5A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.176.5l3.5 4.375c.193.242.304.544.304.856V13a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8.731c0-.312.111-.614.304-.856L3.804 3.5z"/>
+            </svg>
+            <p class="mb-2 fw-semibold">No books found in the catalog.</p>
+            <a href="{% url 'book_create' %}" class="btn btn-sm btn-forest">Add a Book</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer bg-white border-top py-3">
+    <nav aria-label="Catalog pagination">
+      <ul class="pagination justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">&laquo; Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+        {% endif %}
+
+        {% for p in page_obj.paginator.page_range %}
+          {% if page_obj.number == p %}
+            <li class="page-item active"><span class="page-link" style="background-color: var(--primary-green); border-color: var(--primary-green);">{{ p }}</span></li>
+          {% elif p > page_obj.number|add:'-3' and p < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ p }}{% if search_query %}&q={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">{{ p }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Next &raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

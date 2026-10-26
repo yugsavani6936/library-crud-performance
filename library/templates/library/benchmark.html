@@ -1,0 +1,250 @@
+{% extends 'library/base.html' %}
+
+{% block title %}CRUD Performance Benchmarking - Engineering Evaluation{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-lg-8">
+    <h2 class="fw-bold mb-1" style="color: var(--primary-forest);">CRUD Performance Benchmarking</h2>
+    <p class="text-muted mb-0">
+      Execute real-time empirical measurements of PostgreSQL database latency across varying record volumes.
+    </p>
+  </div>
+  <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+    <a href="{% url 'results_dashboard' %}" class="btn btn-outline-forest">
+      View Historical Results Dashboard &raquo;
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Experiment Configuration Form -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header card-header-forest py-3">
+        <h5 class="mb-0 fw-bold">Experiment Configuration</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" id="benchmarkForm">
+          {% csrf_token %}
+
+          <!-- Dataset Size Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">1. Select Dataset Size ($N$ records)</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="dataset_size" id="size100" value="100" {% if dataset_size == 100 or not dataset_size %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 text-start py-2" for="size100">
+                  <div class="fw-bold">100 Records</div>
+                  <small class="text-muted">Fast baseline (~5-20 ms)</small>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="dataset_size" id="size1000" value="1000" {% if dataset_size == 1000 %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 text-start py-2" for="size1000">
+                  <div class="fw-bold">1,000 Records</div>
+                  <small class="text-muted">Standard scale (~30-100 ms)</small>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="dataset_size" id="size5000" value="5000" {% if dataset_size == 5000 %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 text-start py-2" for="size5000">
+                  <div class="fw-bold">5,000 Records</div>
+                  <small class="text-muted">Medium scale</small>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="dataset_size" id="size10000" value="10000" {% if dataset_size == 10000 %}checked{% endif %}>
+                <label class="btn btn-outline-secondary w-100 text-start py-2" for="size10000">
+                  <div class="fw-bold">10,000 Records</div>
+                  <small class="text-muted">Stress test scale</small>
+                </label>
+              </div>
+            </div>
+            <div class="form-text mt-1">Tests relational scaling characteristics from small to high volume.</div>
+          </div>
+
+          <!-- CRUD Operations Selection -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-bold mb-0">2. CRUD Operations to Measure</label>
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="selectAllOps(true)">Select All</button>
+            </div>
+            <div class="list-group">
+              <label class="list-group-item d-flex gap-3 align-items-center">
+                <input class="form-check-input flex-shrink-0 op-check" type="checkbox" name="operations" value="CREATE" checked>
+                <span>
+                  <strong class="d-block text-success">CREATE</strong>
+                  <small class="text-muted">Batch INSERT of $N$ books into PostgreSQL</small>
+                </span>
+              </label>
+              <label class="list-group-item d-flex gap-3 align-items-center">
+                <input class="form-check-input flex-shrink-0 op-check" type="checkbox" name="operations" value="READ" checked>
+                <span>
+                  <strong class="d-block text-primary">READ</strong>
+                  <small class="text-muted">Full query fetch & ORM materialization of $N$ rows</small>
+                </span>
+              </label>
+              <label class="list-group-item d-flex gap-3 align-items-center">
+                <input class="form-check-input flex-shrink-0 op-check" type="checkbox" name="operations" value="UPDATE" checked>
+                <span>
+                  <strong class="d-block text-warning">UPDATE</strong>
+                  <small class="text-muted">Bulk UPDATE query modifying copies column across $N$ rows</small>
+                </span>
+              </label>
+              <label class="list-group-item d-flex gap-3 align-items-center">
+                <input class="form-check-input flex-shrink-0 op-check" type="checkbox" name="operations" value="DELETE" checked>
+                <span>
+                  <strong class="d-block text-danger">DELETE</strong>
+                  <small class="text-muted">Batch DELETE removing $N$ test rows</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Number of Repeated Trials -->
+          <div class="mb-4">
+            <label for="trialsSelect" class="form-label fw-bold">3. Repeated Trials (for Statistical Average)</label>
+            <select name="trials" id="trialsSelect" class="form-select">
+              <option value="1" {% if trials == 1 %}selected{% endif %}>1 Trial (Quick test)</option>
+              <option value="3" {% if trials == 3 or not trials %}selected{% endif %}>3 Trials (Recommended college standard)</option>
+              <option value="5" {% if trials == 5 %}selected{% endif %}>5 Trials (High precision average)</option>
+            </select>
+            <div class="form-text">Repeated runs smooth out OS background variance and cache warm-up.</div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid">
+            <button type="submit" id="runBtn" class="btn btn-forest py-2 fw-semibold">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-play-circle-fill me-1" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z"/>
+              </svg>
+              Run Benchmark Experiment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Results & Timing Details -->
+  <div class="col-lg-7">
+    {% if results %}
+      <!-- Latest Test Results Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold">Experiment Results (Dataset Size: {{ dataset_size }}, Trials: {{ trials }})</h5>
+          <span class="badge bg-white text-success fw-bold">Recorded in PostgreSQL</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Operation</th>
+                <th>Trial #</th>
+                <th>Duration (ms)</th>
+                <th>Throughput</th>
+                <th>High-Res (ns)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in results %}
+              <tr>
+                <td>
+                  {% if r.operation == 'CREATE' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">CREATE</span>
+                  {% elif r.operation == 'READ' %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">READ</span>
+                  {% elif r.operation == 'UPDATE' %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">UPDATE</span>
+                  {% elif r.operation == 'DELETE' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">DELETE</span>
+                  {% endif %}
+                </td>
+                <td class="fw-semibold">Trial {{ r.trial_number }}</td>
+                <td>
+                  <strong class="text-dark">{{ r.execution_time_ms }} ms</strong>
+                  <div class="small text-muted">{{ r.execution_time_s }} s</div>
+                </td>
+                <td>
+                  <span class="text-dark fw-semibold">{{ r.throughput_ops_per_sec }}</span> <small class="text-muted">ops/s</small>
+                </td>
+                <td>
+                  <code class="small text-secondary">{{ r.execution_time_ns }}</code>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Measurement Details Card -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="mb-0 fw-bold" style="color: var(--primary-forest);">How Measurements Are Taken</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info border-0 shadow-sm mb-3">
+          <h6 class="fw-bold mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill me-1" viewBox="0 0 16 16">
+              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+            </svg>
+            Database Execution Time vs. Total HTTP Latency
+          </h6>
+          <p class="mb-0 small">
+            To maintain strict scientific validity for this academic evaluation, our timer measures <strong>pure relational database execution duration</strong> using Python's monotonic <code>time.perf_counter_ns()</code>.
+          </p>
+        </div>
+
+        <div class="row g-3 small">
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-light">
+              <strong class="text-success d-block mb-1">What is Measured:</strong>
+              <ul class="mb-0 ps-3">
+                <li>Time taken by PostgreSQL server to execute SQL queries.</li>
+                <li>Django ORM compilation into SQL and object hydration.</li>
+                <li>Write Ahead Log (WAL) flushing and transaction commits.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 border rounded bg-light">
+              <strong class="text-danger d-block mb-1">What is Excluded:</strong>
+              <ul class="mb-0 ps-3">
+                <li>Network TCP/IP latency between browser and laptop.</li>
+                <li>Django template HTML rendering overhead.</li>
+                <li>Browser DOM parsing and CSS rendering delay.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 p-3 border rounded bg-white">
+          <h6 class="fw-bold mb-2 text-dark">Data Isolation Guarantee</h6>
+          <p class="small text-muted mb-0">
+            All benchmark rows are generated with <code>is_benchmark=True</code> and clean unique test ISBNs. Real library catalog books (<code>is_benchmark=False</code>) are strictly protected and never altered, overwritten, or deleted during any experiment.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function selectAllOps(state) {
+    document.querySelectorAll('.op-check').forEach(function(el) {
+      el.checked = state;
+    });
+  }
+
+  document.getElementById('benchmarkForm').addEventListener('submit', function() {
+    var btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Running Benchmark in PostgreSQL...';
+  });
+</script>
+{% endblock %}
