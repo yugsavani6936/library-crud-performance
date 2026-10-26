@@ -1,4 +1,5 @@
 import csv
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -260,7 +261,8 @@ def results_dashboard(request):
     context = {
         'total_trials': total_trials,
         'chart_sizes': chart_sizes,
-        'chart_datasets': chart_datasets,
+        'chart_sizes_json': json.dumps([str(s) for s in chart_sizes]),
+        'chart_datasets_json': json.dumps(chart_datasets),
         'operations': operations,
         'table_rows': table_rows,
         'trial_records': trial_records,

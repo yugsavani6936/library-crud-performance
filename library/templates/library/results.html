@@ -209,8 +209,9 @@
 <script src="{% static 'library/js/chart.umd.min.js' %}"></script>
 <script>
   {% if total_trials > 0 %}
-  const labels = {{ chart_sizes|safe }}.map(s => s + ' Records');
-  const datasets = {{ chart_datasets|safe }};
+  const rawSizes = {{ chart_sizes_json|safe }};
+  const labels = rawSizes.map(s => s + ' Records');
+  const datasets = {{ chart_datasets_json|safe }};
 
   // Bar Chart Configuration
   const barCtx = document.getElementById('barChart').getContext('2d');

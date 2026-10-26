@@ -11,6 +11,9 @@ python manage.py collectstatic --no-input
 # Apply database migrations to Cloud PostgreSQL
 python manage.py migrate
 
+# Setup or reset admin superuser credentials (admin / admin123)
+python manage.py setup_admin
+
 # Seed sample library books if empty
 python manage.py seed_books
 
