@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Report - Experimental Performance Evaluation of CRUD Operations in Django & PostgreSQL</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2.5cm 2cm 2.5cm 2cm;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.6;
+      color: #111;
+      margin: 0 auto;
+      max-width: 800px;
+      padding: 40px 20px;
+      background-color: #fff;
+    }
+    h1, h2, h3, h4 {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1b4332;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 20pt; text-align: center; text-transform: uppercase; font-weight: bold; }
+    h2 { font-size: 15pt; border-bottom: 2px solid #2d6a4f; padding-bottom: 6px; margin-top: 36px; }
+    h3 { font-size: 13pt; margin-top: 20px; }
+    p, li { text-align: justify; }
+    .cover-page {
+      text-align: center;
+      padding: 60px 0 100px 0;
+      page-break-after: always;
+    }
+    .cover-title {
+      font-size: 22pt;
+      font-weight: bold;
+      color: #1b4332;
+      margin-top: 40px;
+      line-height: 1.3;
+    }
+    .cover-subtitle {
+      font-size: 13pt;
+      margin-top: 30px;
+      color: #444;
+    }
+    .student-box {
+      margin-top: 50px;
+      font-size: 13pt;
+    }
+    .student-name {
+      font-weight: bold;
+      color: #111;
+    }
+    .dept-box {
+      margin-top: 60px;
+      font-size: 12pt;
+      color: #555;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 11pt;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f3;
+      color: #1b4332;
+      font-weight: bold;
+    }
+    .center-text { text-align: center; }
+    .figure-container {
+      text-align: center;
+      margin: 25px 0;
+    }
+    .figure-container img {
+      max-width: 95%;
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .figure-caption {
+      font-size: 10.5pt;
+      font-style: italic;
+      color: #555;
+      margin-top: 8px;
+    }
+    .declaration-box {
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      padding: 24px;
+      background-color: #fafafa;
+    }
+    code {
+      font-family: Consolas, monospace;
+      background: #f4f4f4;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 10.5pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div style="font-size: 14pt; letter-spacing: 1px; color: #555; text-transform: uppercase;">
+      A Project Report On
+    </div>
+    <div class="cover-title">
+      EXPERIMENTAL PERFORMANCE EVALUATION OF CRUD OPERATIONS IN A DJANGO-BASED LIBRARY RECORD APPLICATION
+    </div>
+    
+    <div class="cover-subtitle">
+      Submitted in partial fulfillment of the requirements for the award of the degree of<br>
+      <strong>BACHELOR OF TECHNOLOGY / BACHELOR OF COMPUTER APPLICATIONS</strong><br>
+      in <strong>COMPUTER SCIENCE AND ENGINEERING</strong>
+    </div>
+
+    <div class="student-box">
+      <p style="margin-bottom: 8px; font-weight: bold; color: #1b4332;">SUBMITTED BY:</p>
+      <div class="student-name">1. YUG SAVANI &mdash; <span style="font-weight: normal;">Enrollment No: 12402110501068</span></div>
+      <div class="student-name" style="margin-top: 6px;">2. HITARTH DESAI &mdash; <span style="font-weight: normal;">Enrollment No: 12402110501072</span></div>
+    </div>
+
+    <div class="dept-box">
+      <strong>Department of Computer Science & Engineering</strong><br>
+      Academic Year: 2026 &ndash; 2027
+    </div>
+  </div>
+
+  <!-- DECLARATION -->
+  <div class="page-break">
+    <h2>CANDIDATE DECLARATION</h2>
+    <div class="declaration-box">
+      <p>
+        We hereby declare that the project entitled <strong>"Experimental Performance Evaluation of CRUD Operations in a Django-Based Library Record Application"</strong> submitted in partial fulfillment of the degree requirements is an authentic record of our own work carried out under faculty guidance.
+      </p>
+      <p>
+        The matter embodied in this project report has not been submitted by us for the award of any other degree or diploma to any other University or Institute.
+      </p>
+      <br>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <div>
+          <strong>Date:</strong> 27 October 2026<br>
+          <strong>Place:</strong> Gujarat, India
+        </div>
+        <div style="text-align: right;">
+          <strong>Yug Savani</strong> (12402110501068)<br>
+          <strong>Hitarth Desai</strong> (12402110501072)
+        </div>
+      </div>
+    </div>
+
+    <h2>ABSTRACT</h2>
+    <p>
+      Understanding database latency and scaling characteristics is essential for developing performant, scalable web applications. This project implements a full-stack web application developed using <strong>Python</strong>, the <strong>Django</strong> web framework, and the <strong>PostgreSQL 18</strong> relational database management system to experimentally evaluate the performance of Create, Read, Update, and Delete (CRUD) operations across dataset sizes of 100, 1,000, 5,000, and 10,000 records.
+    </p>
+    <p>
+      The application combines library catalog management (with validation, pagination, and multi-criteria search) with a dedicated performance benchmarking engine. Using a high-resolution monotonic timer (<code>time.perf_counter_ns()</code>), the system isolates pure database execution from browser network delays. The application has been deployed live on <strong>Render.com</strong> backed by a cloud-hosted PostgreSQL 18 instance. The experimental results show that batch <code>DELETE</code> is the fastest operation (~11.19 ms for 10,000 rows), while <code>CREATE</code> scales linearly (~444.26 ms for 10,000 rows) due to Write-Ahead Logging (WAL) and B-Tree index updates for unique keys.
+    </p>
+  </div>
+
+  <!-- CHAPTER 1 -->
+  <h2>CHAPTER 1: INTRODUCTION</h2>
+  <h3>1.1 Background & Motivation</h3>
+  <p>
+    Relational Database Management Systems (RDBMS) like PostgreSQL are the foundational layer of modern software architectures. In library cataloging, maintaining record integrity, unique ISBN constraints, and fast search capabilities are paramount. This project combines full-stack web development with empirical performance evaluation to evaluate how database latency behaves as record volume increases by 100x.
+  </p>
+
+  <h3>1.2 Problem Statement</h3>
+  <p>
+    Developers commonly utilize Object-Relational Mappers (ORMs) without analyzing how queries behave under increasing dataset scales. Without empirical benchmarking across different scales (100 to 10,000 records), it is difficult to determine whether bulk insertions, object hydration, or transaction log commits form the primary operational bottleneck.
+  </p>
+
+  <h3>1.3 Project Objectives</h3>
+  <ul>
+    <li>Design and build a normalized PostgreSQL relational database schema for library inventory.</li>
+    <li>Develop a clean, responsive Django 6.1 web interface for managing book inventory with search and validation.</li>
+    <li>Construct an automated benchmarking engine utilizing Python's <code>time.perf_counter_ns()</code>.</li>
+    <li>Measure individual CRUD durations across scales of 100, 1,000, 5,000, and 10,000 records over repeated trials.</li>
+    <li>Ensure complete test data isolation so that benchmark runs never modify or delete genuine catalog inventory.</li>
+    <li>Deploy the full system to a production cloud environment on Render.com.</li>
+  </ul>
+
+  <!-- CHAPTER 2 -->
+  <h2>CHAPTER 2: SYSTEM ARCHITECTURE & CLOUD DEPLOYMENT</h2>
+  <h3>2.1 Environment Specifications</h3>
+  <table>
+    <tr><th>Component</th><th>Technology Specification</th></tr>
+    <tr><td>Operating System</td><td>Microsoft Windows 10 / 11 (64-bit)</td></tr>
+    <tr><td>Backend Framework</td><td>Django 6.1.2 (Python 3.14.6)</td></tr>
+    <tr><td>Database Management System</td><td>PostgreSQL 18.6 (Port 5432)</td></tr>
+    <tr><td>Database Driver</td><td>Psycopg 3.3.6 (C-binary adapter)</td></tr>
+    <tr><td>Production WSGI Server</td><td>Gunicorn 26.2.0 + WhiteNoise 6.12.0</td></tr>
+    <tr><td>Frontend Libraries</td><td>HTML5, CSS3, Bootstrap 5.3, Chart.js 4.4 (Offline Bundled)</td></tr>
+  </table>
+
+  <h3>2.2 Cloud Infrastructure on Render.com</h3>
+  <p>
+    The project is deployed on Render.com using an Infrastructure-as-Code Blueprint (<code>render.yaml</code>). The architecture provisions a managed PostgreSQL 18 instance connected to a Python WSGI web service.
+  </p>
+
+  <div class="figure-container">
+    <img src="report_images/fig4_render_services.png" alt="Render Cloud Services">
+    <div class="figure-caption">Figure 2.1: Cloud Infrastructure Deployment on Render.com showing Web Service and PostgreSQL 18 Instance.</div>
+  </div>
+
+  <!-- CHAPTER 3 -->
+  <h2>CHAPTER 3: DATABASE DESIGN & MODELING</h2>
+  <h3>3.1 Relational Schema Design</h3>
+  <p>
+    The application utilizes two primary relational tables: <code>library_book</code> for book records and <code>library_benchmarkresult</code> for storing empirical performance logs.
+  </p>
+
+  <table>
+    <tr><th>Table Name</th><th>Key Columns</th><th>Primary Key</th><th>Unique Constraints</th></tr>
+    <tr>
+      <td><code>library_book</code></td>
+      <td>title, author, isbn, category, publication_year, available_copies, is_benchmark</td>
+      <td><code>id</code> (BIGSERIAL)</td>
+      <td><code>isbn</code></td>
+    </tr>
+    <tr>
+      <td><code>library_benchmarkresult</code></td>
+      <td>operation, dataset_size, trial_number, execution_time_ns, database_name, notes</td>
+      <td><code>id</code> (BIGSERIAL)</td>
+      <td>None (Log table)</td>
+    </tr>
+  </table>
+
+  <div class="figure-container">
+    <img src="report_images/fig6_pgadmin_table.png" alt="pgAdmin Database Verification">
+    <div class="figure-caption">Figure 3.1: PostgreSQL Relational Database Schema and Record Verification in pgAdmin 4.</div>
+  </div>
+
+  <!-- CHAPTER 4 -->
+  <h2>CHAPTER 4: IMPLEMENTATION OF LIBRARY MANAGEMENT</h2>
+  <h3>4.1 Catalog Management & Search</h3>
+  <p>
+    The library interface provides responsive browsing with pagination and multi-criteria searching by title, author, or ISBN using Django's <code>Q</code> filter expressions.
+  </p>
+
+  <div class="figure-container">
+    <img src="report_images/fig1_catalog.png" alt="Library Catalog Interface">
+    <div class="figure-caption">Figure 4.1: Library Catalog Management Interface with Multi-Criteria Search and Pagination.</div>
+  </div>
+
+  <h3>4.2 Record Creation & Validation</h3>
+  <p>
+    Book insertion is handled by <code>book_create</code> backed by a Django ModelForm enforcing 10- or 13-digit ISBN uniqueness, publication year bounds, and positive inventory counts.
+  </p>
+
+  <div class="figure-container">
+    <img src="report_images/fig2_add_book.png" alt="Add Book Form">
+    <div class="figure-caption">Figure 4.2: Book Record Creation Form with Validation Controls.</div>
+  </div>
+
+  <!-- CHAPTER 5 -->
+  <h2>CHAPTER 5: EXPERIMENTAL PERFORMANCE EVALUATION</h2>
+  <h3>5.1 High-Resolution Timing Methodology</h3>
+  <p>
+    The benchmark suite isolates pure database execution time using Python's hardware-level monotonic clock <code>time.perf_counter_ns()</code>:
+  </p>
+  <div style="background: #f4f6f4; border-left: 4px solid #2d6a4f; padding: 12px; margin: 15px 0;">
+    <code>start_ns = time.perf_counter_ns()<br>
+    Book.objects.bulk_create(records, batch_size=1000)<br>
+    execution_time_ns = time.perf_counter_ns() - start_ns</code>
+  </div>
+
+  <div class="figure-container">
+    <img src="report_images/fig3_benchmark_config.png" alt="Benchmark Configuration">
+    <div class="figure-caption">Figure 5.1: Experimental Benchmark Suite Configuration and Testbed Controls.</div>
+  </div>
+
+  <h3>5.2 Empirical Latency Measurements</h3>
+  <table>
+    <tr>
+      <th>CRUD Operation</th>
+      <th class="center-text">100 Records</th>
+      <th class="center-text">1,000 Records</th>
+      <th class="center-text">5,000 Records</th>
+      <th class="center-text">10,000 Records</th>
+    </tr>
+    <tr>
+      <td><strong>CREATE</strong> (Batch Insert)</td>
+      <td class="center-text">7.65 ms</td>
+      <td class="center-text">47.39 ms</td>
+      <td class="center-text">236.12 ms</td>
+      <td class="center-text">444.26 ms</td>
+    </tr>
+    <tr>
+      <td><strong>READ</strong> (Query & Materialize)</td>
+      <td class="center-text">1.88 ms</td>
+      <td class="center-text">7.34 ms</td>
+      <td class="center-text">37.16 ms</td>
+      <td class="center-text">152.32 ms</td>
+    </tr>
+    <tr>
+      <td><strong>UPDATE</strong> (Bulk Modify)</td>
+      <td class="center-text">1.89 ms</td>
+      <td class="center-text">16.26 ms</td>
+      <td class="center-text">66.20 ms</td>
+      <td class="center-text">221.07 ms</td>
+    </tr>
+    <tr>
+      <td><strong>DELETE</strong> (Batch Delete)</td>
+      <td class="center-text">0.85 ms</td>
+      <td class="center-text">1.60 ms</td>
+      <td class="center-text">4.00 ms</td>
+      <td class="center-text">11.19 ms</td>
+    </tr>
+  </table>
+
+  <div class="figure-container">
+    <img src="report_images/fig5_charts.png" alt="Chart.js Visualizations">
+    <div class="figure-caption">Figure 5.2: Empirical Latency Matrix and Visual Scaling Trend Charts rendered with Chart.js.</div>
+  </div>
+
+  <h3>5.3 Performance Analysis Findings</h3>
+  <ol>
+    <li><strong>Linear Write Scaling (CREATE):</strong> Bulk inserting 10,000 records requires ~444 ms. The scaling is linear due to disk Write-Ahead Logging (WAL) and B-Tree index updates for unique ISBN values.</li>
+    <li><strong>High-Speed DELETE:</strong> Deleting 10,000 records takes only ~11.19 ms. PostgreSQL updates row visibility flags (<code>xmax</code>) in a single transaction without hydrating Python objects.</li>
+    <li><strong>Buffer Cache Impact (READ):</strong> Read operations benefit significantly from PostgreSQL's shared buffer pool, keeping frequently accessed pages in RAM.</li>
+  </ol>
+
+  <!-- CHAPTER 6 -->
+  <h2>CHAPTER 6: CONCLUSION & FUTURE SCOPE</h2>
+  <h3>6.1 Conclusion</h3>
+  <p>
+    The project successfully accomplished both of its foundational goals: delivering a complete, secure library record management application and empirically evaluating relational database scaling. Using PostgreSQL 18 and Django 6.1, the system proved that batching and indexing maintain predictable, sub-second execution even under 10,000 records on standard laptop hardware.
+  </p>
+
+  <h3>6.2 Future Scope</h3>
+  <ul>
+    <li>Evaluating high-concurrency multi-client stress testing using Locust or Apache JMeter.</li>
+    <li>Integrating an in-memory Redis caching tier for read-heavy operations.</li>
+    <li>Evaluating performance differences across PostgreSQL index types (B-Tree vs. Hash vs. BRIN).</li>
+  </ul>
+
+  <h2>REFERENCES</h2>
+  <ol>
+    <li>Silberschatz, A., Korth, H. F., & Sudarshan, S. (2019). <em>Database System Concepts</em> (7th ed.). McGraw-Hill.</li>
+    <li>PostgreSQL Global Development Group. (2026). <em>PostgreSQL 18 Documentation</em>. https://www.postgresql.org/docs/</li>
+    <li>Django Software Foundation. (2026). <em>Django Database Optimization Documentation</em>. https://docs.djangoproject.com/</li>
+    <li>Python Software Foundation. (2026). <em>time.perf_counter() Documentation</em>. https://docs.python.org/3/library/time.html</li>
+    <li>Chart.js Community. (2026). <em>Chart.js HTML5 Charting Library</em>. https://www.chartjs.org/</li>
+  </ol>
+
+</body>
+</html>
